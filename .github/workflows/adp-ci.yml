@@ -31,7 +31,7 @@ jobs:
 
       - name: List Deny Rule
         run: |
-          echo ${steps.getDenyRules.outputs.result}
+          echo ${{ steps.getDenyRules.outputs.result }}
 
       - name: Get Allow Rules
         id: getAllowRules
@@ -41,7 +41,7 @@ jobs:
 
       - name: List Allow Rule
         run: |
-          echo ${steps.getAllowRules.outputs.result}
+          echo ${{ steps.getAllowRules.outputs.result }}
 
   # adf-validation:
   #   runs-on: ubuntu-20.04
