@@ -29,19 +29,19 @@ jobs:
         with:
           cmd: yq eval '${{ steps.getBranchName.outputs.yq_deny_expression }}' .github/branch-rules.yml
 
-      - name: List Deny Rule
-        run: |
-          echo ${{ steps.getDenyRules.outputs.result }}
-
       - name: Get Allow Rules
         id: getAllowRules
         uses: mikefarah/yq@v4.16.2
         with:
           cmd: yq eval '${{ steps.getBranchName.outputs.yq_allow_expression }}' .github/branch-rules.yml
 
-      - name: List Allow Rule
+      - name: Evaluate Rule
         run: |
-          echo ${{ steps.getAllowRules.outputs.result }}
+          deny_result=${{ steps.getDenyRules.outputs.result }}
+          allow_result=${{ steps.getAllowRules.outputs.result }}
+
+          [ ! -z "$deny_result" ] && exit 1
+          [ -z "$allow_result" ] && exit 1
 
   # adf-validation:
   #   runs-on: ubuntu-20.04
