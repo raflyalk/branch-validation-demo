@@ -12,15 +12,17 @@ jobs:
         run: |
           head_branch=${GITHUB_HEAD_REF##*/}
           base_branch=${GITHUB_BASE_REF##*/}
+          yq_deny_expression='.branches.'"${base_branch}"'.deny[] | select("'"${head_branch}"'" == .)'
+          yq_allow_expression='.branches.'"${base_branch}"'.allow[] | select("'"${head_branch}"'" == .)'
 
-          echo "::set-output name=base_branch::$base_branch"
-          echo "::set-output name=head_branch::$head_branch"
+          echo "::set-output name=yq_deny_expression::$yq_deny_expression"
+          echo "::set-output name=yq_allow_expression::$yq_allow_expression"
 
       - name: Get Deny Rules
         id: getDenyRules
         uses: mikefarah/yq@v4.16.2
         with:
-          cmd: yq eval '.branches.'"${steps.getBranchName.outputs.base_branch}"'.deny[] | select("'"${steps.getBranchName.outputs.head_branch}"'" == .)' .github/branch-rules.yml
+          cmd: yq eval '${steps.getBranchName.outputs.yq_deny_expression}' .github/branch-rules.yml
 
       - name: List Deny Rule
         run: |
@@ -30,7 +32,7 @@ jobs:
         id: getAllowRules
         uses: mikefarah/yq@v4.16.2
         with:
-          cmd: yq eval '.branches.'"${steps.getBranchName.outputs.base_branch}"'.allow[] | select("'"${steps.getBranchName.outputs.head_branch}"'" == .)' .github/branch-rules.yml
+          cmd: yq eval '${steps.getBranchName.outputs.yq_allow_expression}' .github/branch-rules.yml
 
       - name: List Allow Rule
         run: |
