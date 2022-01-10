@@ -1,0 +1,66 @@
+branches:
+  adf_publish:
+    deny:
+      - "*"
+  adf_collab_prd:
+    allow:
+      - "*_prd"
+  adf_collab_dev:
+    allow:
+      - "*_dev"
+
+  # Smart Usecase
+  smart_dev:
+    deny:
+      - smart_prd
+      - adf_*
+    allow:
+      - smart_*
+  smart_prd:
+    deny:
+      - smart_dev
+      - adf_*
+    allow:
+      - smart_*
+
+  # Hcpmce Usecase
+  hcpmce_dev:
+    deny:
+      - hcpmce_prd
+      - adf_*
+    allow:
+      - hcpmce_*
+  hcpmce_prd:
+    deny:
+      - hcpmce_dev
+      - adf_*
+    allow:
+      - hcpmce_*
+
+  # Sfe Usecase
+  sfe_dev:
+    deny:
+      - sfe_prd
+      - adf_*
+    allow:
+      - sfe_*
+  sfe_prd:
+    deny:
+      - sfe_dev
+      - adf_*
+    allow:
+      - sfe_*
+
+  # Snblitz Usecase
+  snblitz_dev:
+    deny:
+      - snblitz_prd
+      - adf_*
+    allow:
+      - snblitz_*
+  snblitz_prd:
+    deny:
+      - snblitz_dev
+      - adf_*
+    allow:
+      - snblitz_*

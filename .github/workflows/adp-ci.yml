@@ -1,0 +1,54 @@
+name: Azure Data Platform CI
+
+on:
+  pull_request:
+
+jobs:
+  branch-validation:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Get head and base branch name
+        id: getBranchName
+        run: |
+          head_branch=${GITHUB_HEAD_REF##*/}
+          base_branch=${GITHUB_BASE_REF##*/}
+
+          echo "::set-output name=base_branch::$base_branch"
+          echo "::set-output name=head_branch::$head_branch"
+
+      - name: Get Deny Rules
+        id: getDenyRules
+        uses: mikefarah/yq@v4.16.2
+        with:
+          cmd: yq eval '.branches.'"${steps.getBranchName.outputs.base_branch}"'.deny[] | select("'"${steps.getBranchName.outputs.head_branch}"'" == .) .github/branch-rules.yml'
+
+      - name: List Deny Rule
+        run: |
+          echo ${steps.getDenyRules.outputs.result}
+
+      - name: Get Allow Rules
+        id: getAllowRules
+        uses: mikefarah/yq@v4.16.2
+        with:
+          cmd: yq eval '.branches.'"${steps.getBranchName.outputs.base_branch}"'.allow[] | select("'"${steps.getBranchName.outputs.head_branch}"'" == .) .github/branch-rules.yml'
+
+      - name: List Allow Rule
+        run: |
+          echo ${steps.getAllowRules.outputs.result}
+
+  # adf-validation:
+  #   runs-on: ubuntu-20.04
+  #   needs: branch-validation
+
+  #   steps:
+  #     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+  #     - name: Checkout
+  #       uses: actions/checkout@v2
+
+  #     # Validate the ADF
+  #     - name: Validate ADF
+  #       id: validate_adf
+  #       uses: Azure/data-factory-validate-action@v1.1.5
+  #       with:
+  #         path: ./adf
+  #         id: ${{ secrets.ADF_INGESTION_RESOURCE_ID }}
