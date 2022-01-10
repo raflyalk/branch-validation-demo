@@ -20,7 +20,7 @@ jobs:
         id: getDenyRules
         uses: mikefarah/yq@v4.16.2
         with:
-          cmd: yq eval '.branches.'"${steps.getBranchName.outputs.base_branch}"'.deny[] | select("'"${steps.getBranchName.outputs.head_branch}"'" == .) .github/branch-rules.yml'
+          cmd: yq eval '.branches.'"${steps.getBranchName.outputs.base_branch}"'.deny[] | select("'"${steps.getBranchName.outputs.head_branch}"'" == .)' .github/branch-rules.yml
 
       - name: List Deny Rule
         run: |
@@ -30,7 +30,7 @@ jobs:
         id: getAllowRules
         uses: mikefarah/yq@v4.16.2
         with:
-          cmd: yq eval '.branches.'"${steps.getBranchName.outputs.base_branch}"'.allow[] | select("'"${steps.getBranchName.outputs.head_branch}"'" == .) .github/branch-rules.yml'
+          cmd: yq eval '.branches.'"${steps.getBranchName.outputs.base_branch}"'.allow[] | select("'"${steps.getBranchName.outputs.head_branch}"'" == .)' .github/branch-rules.yml
 
       - name: List Allow Rule
         run: |
