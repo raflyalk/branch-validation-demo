@@ -18,11 +18,13 @@ jobs:
           echo "::set-output name=yq_deny_expression::$yq_deny_expression"
           echo "::set-output name=yq_allow_expression::$yq_allow_expression"
 
+          yq --help
+
       - name: Get Deny Rules
         id: getDenyRules
         uses: mikefarah/yq@v4.16.2
         with:
-          cmd: yq eval '${steps.getBranchName.outputs.yq_deny_expression}' .github/branch-rules.yml
+          cmd: yq eval '${{ steps.getBranchName.outputs.yq_deny_expression }}' .github/branch-rules.yml
 
       - name: List Deny Rule
         run: |
@@ -32,7 +34,7 @@ jobs:
         id: getAllowRules
         uses: mikefarah/yq@v4.16.2
         with:
-          cmd: yq eval '${steps.getBranchName.outputs.yq_allow_expression}' .github/branch-rules.yml
+          cmd: yq eval '${{ steps.getBranchName.outputs.yq_allow_expression }}' .github/branch-rules.yml
 
       - name: List Allow Rule
         run: |
