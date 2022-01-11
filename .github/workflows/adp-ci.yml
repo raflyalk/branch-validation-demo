@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.repository.default_branch }}
 
       - name: Get head and base branch name
         id: getBranchName
@@ -17,6 +19,8 @@ jobs:
           base_branch=${GITHUB_BASE_REF##*/}
           yq_deny_expression='.branches.'"${base_branch}"'.deny[] | select("'"${head_branch}"'" == .)'
           yq_allow_expression='.branches.'"${base_branch}"'.allow[] | select("'"${head_branch}"'" == .)'
+
+          ls
 
           echo "::set-output name=head_branch::$head_branch"
           echo "::set-output name=base_branch::$base_branch"
