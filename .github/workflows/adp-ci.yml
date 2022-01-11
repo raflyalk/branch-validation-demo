@@ -44,6 +44,7 @@ jobs:
 
           [ ! -z "$deny_result" ] && echo "::error title=Merging is not allowed::Merging to branch ${{ steps.getBranchName.outputs.base_branch }} from branch ${{ steps.getBranchName.outputs.head_branch }} is explicitly denied" && exit 1
           [ -z "$allow_result" ] && echo "::error title=Merging is not allowed::Merging to branch ${{ steps.getBranchName.outputs.base_branch }} from branch ${{ steps.getBranchName.outputs.head_branch }} is not allowed" && exit 1
+          exit 0
 
   # adf-validation:
   #   runs-on: ubuntu-20.04
