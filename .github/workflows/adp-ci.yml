@@ -25,7 +25,7 @@ jobs:
         id: getYqExpression
         run: |
           yq_deny_expression='.branches.${{ steps.getBranchName.outputs.base_branch }}.deny[] | select("${{ steps.getBranchName.outputs.head_branch }}" == .)'
-          yq_allow_expression='.branches.${{ steps.getBranchName.outputs.base_branch }}.allow[] | select("${{ steps.getBranchName.outputs.head_branch }}"" == .)'
+          yq_allow_expression='.branches.${{ steps.getBranchName.outputs.base_branch }}.allow[] | select("${{ steps.getBranchName.outputs.head_branch }}" == .)'
 
           echo "::set-output name=deny::$yq_deny_expression"
           echo "::set-output name=allow::$yq_allow_expression"
