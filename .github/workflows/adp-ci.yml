@@ -12,43 +12,55 @@ jobs:
         with:
           ref: ${{ github.event.repository.default_branch }}
 
-      - name: Get head and base branch name
+      - name: Get Head and Base Branch Name
         id: getBranchName
         run: |
           head_branch=${GITHUB_HEAD_REF##*/}
           base_branch=${GITHUB_BASE_REF##*/}
-          yq_deny_expression='.branches.'"${base_branch}"'.deny[] | select("'"${head_branch}"'" == .)'
-          yq_allow_expression='.branches.'"${base_branch}"'.allow[] | select("'"${head_branch}"'" == .)'
-
-          ls
 
           echo "::set-output name=head_branch::$head_branch"
           echo "::set-output name=base_branch::$base_branch"
-          echo "::set-output name=yq_deny_expression::$yq_deny_expression"
-          echo "::set-output name=yq_allow_expression::$yq_allow_expression"
 
-          yq --help
+      - name: Get yq Expression
+        id: getYqExpression
+        run: |
+          yq_deny_expression='.branches.${{ steps.getBranchName.outputs.base_branch }}.deny[] | select("${{ steps.getBranchName.outputs.head_branch }}" == .)'
+          yq_allow_expression='.branches.${{ steps.getBranchName.outputs.base_branch }}.allow[] | select("${{ steps.getBranchName.outputs.head_branch }}"" == .)'
+
+          echo "::set-output name=deny::$yq_deny_expression"
+          echo "::set-output name=allow::$yq_allow_expression"
 
       - name: Get Deny Rules
         id: getDenyRules
         uses: mikefarah/yq@v4.16.2
         with:
-          cmd: yq eval '${{ steps.getBranchName.outputs.yq_deny_expression }}' .github/branch-rules.yml
+          cmd: yq eval '${{ steps.getYqExpression.outputs.deny }}' .github/branch-rules.yml
 
       - name: Get Allow Rules
         id: getAllowRules
         uses: mikefarah/yq@v4.16.2
         with:
-          cmd: yq eval '${{ steps.getBranchName.outputs.yq_allow_expression }}' .github/branch-rules.yml
+          cmd: yq eval '${{ steps.getYqExpression.outputs.allow }}' .github/branch-rules.yml
 
       - name: Evaluate Rule
         run: |
           deny_result="${{ steps.getDenyRules.outputs.result }}"
           allow_result="${{ steps.getAllowRules.outputs.result }}"
 
+          # If deny rule exists, then the head branch is explicitly denied to merge to base branch
           [ ! -z "$deny_result" ] && echo "::error title=Merging is not allowed::Merging to branch ${{ steps.getBranchName.outputs.base_branch }} from branch ${{ steps.getBranchName.outputs.head_branch }} is explicitly denied" && exit 1
+          
+          # If allow rule doesn't exist, then the head branch is not allowed to merge to base branch
           [ -z "$allow_result" ] && echo "::error title=Merging is not allowed::Merging to branch ${{ steps.getBranchName.outputs.base_branch }} from branch ${{ steps.getBranchName.outputs.head_branch }} is not allowed" && exit 1
           exit 0
+
+      - name: Close Pull
+        uses: peter-evans/close-pull@v1
+        if: ${{ failure() }}
+        with:
+          pull-request-number: ${{ github.event.number }}
+          comment: Auto-closing pull request because branch validation failed.
+          delete-branch: false
 
   # adf-validation:
   #   runs-on: ubuntu-20.04
