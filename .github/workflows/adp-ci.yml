@@ -43,23 +43,34 @@ jobs:
           cmd: yq eval '${{ steps.getYqExpression.outputs.allow }}' .github/branch-rules.yml
 
       - name: Evaluate Rule
+        id: evaluateRule
         run: |
           deny_result="${{ steps.getDenyRules.outputs.result }}"
           allow_result="${{ steps.getAllowRules.outputs.result }}"
 
           # If deny rule exists, then the head branch is explicitly denied to merge to base branch
-          [ ! -z "$deny_result" ] && echo "::error title=Merging is not allowed::Merging to branch ${{ steps.getBranchName.outputs.base_branch }} from branch ${{ steps.getBranchName.outputs.head_branch }} is explicitly denied" && exit 1
-          
+          [ ! -z "$deny_result" ] &&
+            message="Merging to branch ${{ steps.getBranchName.outputs.base_branch }} from branch ${{ steps.getBranchName.outputs.head_branch }} is explicitly denied" &&
+            echo "::set-output name=message::$message" &&
+            echo "::error title=Merging is not allowed::$message" &&
+            exit 1
+
           # If allow rule doesn't exist, then the head branch is not allowed to merge to base branch
-          [ -z "$allow_result" ] && echo "::error title=Merging is not allowed::Merging to branch ${{ steps.getBranchName.outputs.base_branch }} from branch ${{ steps.getBranchName.outputs.head_branch }} is not allowed" && exit 1
+          [ -z "$allow_result" ] &&
+            message="Merging to branch ${{ steps.getBranchName.outputs.base_branch }} from branch ${{ steps.getBranchName.outputs.head_branch }} is not allowed" &&
+            echo "::set-output name=message::$message" &&
+            echo "::error title=Merging is not allowed::$message" &&
+            exit 1
+
+          # If deny rule doesn't exist and allow rule exists, then the branches are allowed to merge
           exit 0
 
-      - name: Close Pull
+      - name: Close PR if Branch Validation Fails
         uses: peter-evans/close-pull@v1
         if: ${{ failure() }}
         with:
           pull-request-number: ${{ github.event.number }}
-          comment: Auto-closing pull request because branch validation failed.
+          comment: "Auto-closing pull request because: ${{ steps.evaluateRule.outputs.message }}."
           delete-branch: false
 
   # adf-validation:
